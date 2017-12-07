@@ -1,9 +1,14 @@
-package org.trie4j;
+package WordsTests;
 
+import org.trie4j.Node;
+import org.trie4j.Trie;
 import org.trie4j.louds.TailLOUDSTrie;
 import org.trie4j.louds.bvtree.LOUDSBvTree;
 import org.trie4j.patricia.PatriciaTrie;
 import org.trie4j.tail.SuffixTrieTailArray;
+import org.trie4j.util.Pair;
+
+import java.util.Objects;
 
 public class TailLOUDSTrieGetParentTest {
     public static void main(String[] args) {
@@ -19,12 +24,16 @@ public class TailLOUDSTrieGetParentTest {
         patriciaTrie.insert("Lucas Oliverira Neto");
         patriciaTrie.insert("Lucas Oliverira Bisneto");
 
-        final TailLOUDSTrie trie = new TailLOUDSTrie(patriciaTrie,  new LOUDSBvTree(patriciaTrie.nodeSize()), new SuffixTrieTailArray(patriciaTrie.size()));
+        TailLOUDSTrie trie = new TailLOUDSTrie(patriciaTrie, new LOUDSBvTree(patriciaTrie.nodeSize()), new SuffixTrieTailArray(patriciaTrie.size()));
+        Iterable<Pair<String, Integer>> x = trie.predictiveSearchWithNodeId("");
+        for (Pair<String, Integer> stringIntegerPair : x) {
+            final String expected = stringIntegerPair.getFirst();
+            final String got = trie.getWord(stringIntegerPair.getSecond());
 
-        int nodeId = trie.getNodeId("Lucas Oliverira Bisneto");
-        System.out.println(trie.getWord(nodeId));
-
-        boolean contains = trie.contains("Lucas Oliverira Neto");
-        System.out.println(contains);
+            if (!Objects.equals(expected, got)) {
+                System.err.println("ERROR!");
+                System.exit(1);
+            }
+        }
     }
 }

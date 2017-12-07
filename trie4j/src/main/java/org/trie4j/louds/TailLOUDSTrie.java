@@ -34,7 +34,6 @@ import org.trie4j.Trie;
 import org.trie4j.bv.BytesRank1OnlySuccinctBitVector;
 import org.trie4j.bv.SuccinctBitVector;
 import org.trie4j.louds.bvtree.BvTree;
-import org.trie4j.louds.bvtree.FastBitSetBvTree;
 import org.trie4j.louds.bvtree.LOUDSBvTree;
 import org.trie4j.patricia.PatriciaTrie;
 import org.trie4j.tail.ConcatTailArrayBuilder;
@@ -48,7 +47,7 @@ import org.trie4j.util.Range;
 public class TailLOUDSTrie
 extends AbstractTermIdTrie
 implements Externalizable, TermIdTrie{
-	protected static interface NodeListener{
+	public static interface NodeListener{
 		void listen(Node node, int id);
 	}
 
@@ -384,6 +383,53 @@ implements Externalizable, TermIdTrie{
 			String letter = b.toString();
 			if(term.get(nid)){
 				ret.add(Pair.create(letter, term.rank1(nid) - 1));
+			}
+			bvtree.getChildNodeIds(nid, r);
+			for(int i = (r.getEnd() - 1); i >= r.getStart(); i--){
+				queue.offerFirst(Pair.create(i, letter));
+			}
+		}
+		return ret;
+	}
+
+	public Iterable<Pair<String, Integer>> predictiveSearchWithNodeId(String query) {
+		List<Pair<String, Integer>> ret = new ArrayList<Pair<String, Integer>>();
+		char[] chars = query.toCharArray();
+		int charsLen = chars.length;
+		int nodeId = 0; // root
+		Range r = new Range();
+		TailCharIterator tci = tailArray.newIterator();
+		String pfx = null;
+		int charsIndexBack = 0;
+		for(int charsIndex = 0; charsIndex < charsLen; charsIndex++){
+			charsIndexBack = charsIndex;
+			int child = getChildNode(nodeId, chars[charsIndex], r);
+			if(child == -1) return ret;
+			tci.setOffset(tailArray.getIteratorOffset(child));
+			while(tci.hasNext()){
+				charsIndex++;
+				if(charsIndex >= charsLen) break;
+				if(chars[charsIndex] != tci.next()) return ret;
+			}
+			nodeId = child;
+		}
+		pfx = new String(chars, 0, charsIndexBack);
+
+		Deque<Pair<Integer, String>> queue = new LinkedList<Pair<Integer,String>>();
+		queue.offerLast(Pair.create(nodeId, pfx));
+		while(queue.size() > 0){
+			Pair<Integer, String> element = queue.pollFirst();
+			int nid = element.getFirst();
+
+			StringBuilder b = new StringBuilder(element.getSecond());
+			if(nid > 0){
+				b.append(labels[nid]);
+			}
+			tci.setOffset(tailArray.getIteratorOffset(nid));
+			while(tci.hasNext()) b.append(tci.next());
+			String letter = b.toString();
+			if(term.get(nid)){
+				ret.add(Pair.create(letter, nid));
 			}
 			bvtree.getChildNodeIds(nid, r);
 			for(int i = (r.getEnd() - 1); i >= r.getStart(); i--){
