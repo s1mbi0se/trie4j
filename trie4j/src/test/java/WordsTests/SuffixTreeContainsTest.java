@@ -1,6 +1,9 @@
 package WordsTests;
 
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import org.junit.After;
@@ -44,7 +47,7 @@ public class SuffixTreeContainsTest {
         params.add(new Object[]{131, 49, 100});
         params.add(new Object[]{10000, 5, 15});
         params.add(new Object[]{10000, 50, 100});
-        params.add(new Object[]{10000, 200, 300});
+        params.add(new Object[]{1000000, 20, 30});
     }
 
     @Before
@@ -56,77 +59,68 @@ public class SuffixTreeContainsTest {
     }
 
     @Test
-    public void uniqueWordsTest() {
+    public void uniqueWordsTest() throws IOException {
         final String[] words = GenerateWords.generateUniqueByteWords(quantityOfWords, minLength, maxLength);
         patriciaTrie = new PatriciaTrie(words);
 
-        final TailLOUDSTrie trie = new TailLOUDSTrie(patriciaTrie,
-                new LOUDSBvTree(patriciaTrie.nodeSize()), new SuffixTrieTailArray(patriciaTrie.size()));
-
-        for (String word : words) {
-            final boolean contains = trie.contains(word);
-
-            Assert.assertTrue(contains);
-        }
+        final TailLOUDSTrie trie = getOptimizedTrie();
+        assertContains(words, trie);
     }
 
     @Test
-    public void ipv4WordsTest() {
+    public void ipv4WordsTest() throws IOException {
         final String[] words = GenerateWords.generateRandomIPv4(quantityOfWords);
         patriciaTrie = new PatriciaTrie(words);
 
-        final TailLOUDSTrie trie = new TailLOUDSTrie(patriciaTrie,
-                new LOUDSBvTree(patriciaTrie.nodeSize()), new SuffixTrieTailArray(patriciaTrie.size()));
-
-        for (String word : words) {
-            final boolean contains = trie.contains(word);
-
-            Assert.assertTrue(contains);
-        }
+        final TailLOUDSTrie trie = getOptimizedTrie();
+        assertContains(words, trie);
     }
 
     @Test
-    public void userAgentsTest() {
+    public void userAgentsTest() throws IOException {
         final String[] words = GenerateWords.generateRandomUserAgents(quantityOfWords);
         patriciaTrie = new PatriciaTrie(words);
 
-        final TailLOUDSTrie trie = new TailLOUDSTrie(patriciaTrie,
-                new LOUDSBvTree(patriciaTrie.nodeSize()), new SuffixTrieTailArray(patriciaTrie.size()));
-
-        for (String word : words) {
-            final boolean contains = trie.contains(word);
-
-            Assert.assertTrue(contains);
-        }
+        final TailLOUDSTrie trie = getOptimizedTrie();
+        assertContains(words, trie);
     }
 
     @Test
-    public void randomUuidsTest() {
+    public void randomUuidsTest() throws IOException {
         final String[] words = GenerateWords.generateRandomUuids(quantityOfWords);
         patriciaTrie = new PatriciaTrie(words);
 
-        final TailLOUDSTrie trie = new TailLOUDSTrie(patriciaTrie,
-                new LOUDSBvTree(patriciaTrie.nodeSize()), new SuffixTrieTailArray(patriciaTrie.size()));
-
-        for (String word : words) {
-            final boolean contains = trie.contains(word);
-
-            Assert.assertTrue(contains);
-        }
+        final TailLOUDSTrie trie = getOptimizedTrie();
+        assertContains(words, trie);
     }
 
     @Test
-    public void randomStringsTest() {
+    public void randomStringsTest() throws IOException {
         final String[] words = GenerateWords.generateRandomStrings(quantityOfWords, minLength, maxLength);
         patriciaTrie = new PatriciaTrie(words);
 
-        final TailLOUDSTrie trie = new TailLOUDSTrie(patriciaTrie,
-                new LOUDSBvTree(patriciaTrie.nodeSize()), new SuffixTrieTailArray(patriciaTrie.size()));
+        final TailLOUDSTrie trie = getOptimizedTrie();
+        assertContains(words, trie);
+    }
 
+    private void assertContains(String[] words, TailLOUDSTrie trie) throws IOException {
         for (String word : words) {
             final boolean contains = trie.contains(word);
 
             Assert.assertTrue(contains);
         }
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        trie.writeExternal(new ObjectOutputStream(out));
+        out.flush();
+
+        System.out.println("Size: " + out.size());
+        out.close();
+    }
+
+    private TailLOUDSTrie getOptimizedTrie() {
+        return new TailLOUDSTrie(patriciaTrie,
+                new LOUDSBvTree(patriciaTrie.nodeSize()),
+                new SuffixTrieTailArray(patriciaTrie.size()));
     }
 }
