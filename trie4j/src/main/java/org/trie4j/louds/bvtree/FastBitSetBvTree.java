@@ -50,6 +50,11 @@ public class FastBitSetBvTree implements BvTree{
 	public void trimToSize() {
 	}
 
+	@Override
+	public int getParentNodeId(int selfNodeId) {
+		throw new RuntimeException();
+	}
+
 	private FastBitSet bs;
 	private int size;
 }

@@ -66,6 +66,11 @@ public class LOUDSBvTree implements Externalizable, BvTree{
 	}
 
 	@Override
+	public int getParentNodeId(int selfNodeId) {
+		return sbv.rank0(sbv.select1(selfNodeId));
+	}
+
+	@Override
 	public void trimToSize() {
 		sbv.trimToSize();
 	}

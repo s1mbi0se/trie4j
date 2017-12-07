@@ -34,6 +34,7 @@ import org.trie4j.Trie;
 import org.trie4j.bv.BytesRank1OnlySuccinctBitVector;
 import org.trie4j.bv.SuccinctBitVector;
 import org.trie4j.louds.bvtree.BvTree;
+import org.trie4j.louds.bvtree.FastBitSetBvTree;
 import org.trie4j.louds.bvtree.LOUDSBvTree;
 import org.trie4j.patricia.PatriciaTrie;
 import org.trie4j.tail.ConcatTailArrayBuilder;
@@ -137,6 +138,18 @@ implements Externalizable, TermIdTrie{
 			}
 		}
 		return term.get(nodeId);
+	}
+
+	public String getWord(int nodeId) {
+		StringBuilder stringBuilder = new StringBuilder();
+		LOUDSNode loudsNode = new LOUDSNode(0);
+		while (nodeId > 0) {
+			loudsNode.nodeId = nodeId;
+			char[] letters = loudsNode.getLetters();
+			stringBuilder.insert(0, letters);
+			nodeId = this.getParent(nodeId);
+		}
+		return stringBuilder.toString();
 	}
 
 	public int getNodeId(String text){
@@ -488,6 +501,10 @@ implements Externalizable, TermIdTrie{
 			} while(start != end);
 			return -1;
 		}
+	}
+
+	private int getParent(int nodeId) {
+		return bvtree.getParentNodeId(nodeId);
 	}
 
 	private void extend(){

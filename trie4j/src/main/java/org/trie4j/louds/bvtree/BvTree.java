@@ -21,5 +21,8 @@ public interface BvTree{
 	void appendChild();
 	void appendSelf();
 	void getChildNodeIds(int selfNodeId, Range range);
+
+	int getParentNodeId(int selfNodeId);
+
 	void trimToSize();
 }

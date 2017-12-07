@@ -96,7 +96,12 @@ implements Externalizable, BvTree{
 		}
 		range.set(-1, -1);
 	}
-	
+
+	@Override
+	public int getParentNodeId(int selfNodeId) {
+		throw new RuntimeException();
+	}
+
 	@Override
 	public void trimToSize() {
 		r0.trimToSize();
